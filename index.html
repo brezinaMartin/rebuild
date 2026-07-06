@@ -1,4 +1,4 @@
-<!-- OPERACE PŘESTAVBA — polní manuál a deník (offline / localStorage verze) -->
+<!-- OPERACE PŘESTAVBA — verze 1.1 — polní manuál a deník (offline / localStorage verze) -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2C3122">
@@ -400,7 +400,7 @@
   <div id="testList" style="overflow-x:auto"></div>
 </section>
 
-<footer>OPERACE PŘESTAVBA · verze 1.0 (offline) · data se ukládají jen v tomto zařízení — nikam se neodesílají · zálohuj přes Export</footer>
+<footer>OPERACE PŘESTAVBA · verze 1.1 (offline) · data se ukládají jen v tomto zařízení — nikam se neodesílají · zálohuj přes Export</footer>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -954,21 +954,21 @@ buildWfSelect();
 /* ---------- offline režim (service worker přes Blob) ---------- */
 if('serviceWorker' in navigator){
   const swCode=`
-    const C='prestavba-v1';
+    const C='prestavba-v2';
     self.addEventListener('install',e=>{self.skipWaiting();});
-    self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});
+    self.addEventListener('activate',e=>{e.waitUntil(
+      caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())
+    );});
     self.addEventListener('fetch',e=>{
       if(e.request.method!=='GET')return;
       e.respondWith(
-        caches.open(C).then(cache=>
-          cache.match(e.request).then(hit=>{
-            const net=fetch(e.request).then(res=>{
-              if(res&&res.status===200&&(e.request.url.startsWith('http')))cache.put(e.request,res.clone());
-              return res;
-            }).catch(()=>hit);
-            return hit||net;
-          })
-        )
+        fetch(e.request).then(res=>{
+          if(res&&res.status===200&&e.request.url.startsWith('http')){
+            const clone=res.clone();
+            caches.open(C).then(c=>c.put(e.request,clone));
+          }
+          return res;
+        }).catch(()=>caches.open(C).then(c=>c.match(e.request)))
       );
     });`;
   try{
