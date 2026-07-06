@@ -1,0 +1,957 @@
+<!-- OPERACE PŘESTAVBA — polní manuál a deník (offline / localStorage verze) -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2C3122">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Přestavba">
+<title>Operace Přestavba</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM2IiBmaWxsPSIjMkMzMTIyIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1zaXplPSIxMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjRUY3QTE3Ij7imIU8L3RleHQ+PC9zdmc+">
+<link href="https://fonts.googleapis.com/css2?family=Staatliches&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#2C3122; --panel:#383F2C; --panel2:#414936; --line:#525B41;
+    --ink:#E9E4CE; --muted:#A8AE8E; --khaki:#D6CFB0;
+    --accent:#EF7A17; --accent-dim:#b85c10;
+    --ok:#9FBF6B; --danger:#D96A4A;
+    --mono:'IBM Plex Mono',monospace; --disp:'Staatliches',sans-serif; --body:'Barlow',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+    background-image:radial-gradient(rgba(0,0,0,.18) 1px,transparent 1px);background-size:26px 26px;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px 90px}
+
+  header{padding:28px 0 10px;border-bottom:3px double var(--line);margin-bottom:14px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--disp);font-size:clamp(34px,7vw,58px);letter-spacing:.06em;line-height:1.02;color:var(--khaki)}
+  h1 .x{color:var(--accent)}
+  .sub{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px}
+
+  nav{display:flex;gap:6px;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;border-bottom:1px solid var(--line)}
+  nav button{font-family:var(--disp);letter-spacing:.08em;font-size:16px;background:transparent;color:var(--muted);
+    border:1px solid var(--line);padding:7px 14px;cursor:pointer;border-radius:2px}
+  nav button.on{background:var(--accent);color:#20240F;border-color:var(--accent)}
+  nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  section.tab{display:none;padding-top:18px}
+  section.tab.on{display:block}
+
+  h2{font-family:var(--disp);font-size:26px;letter-spacing:.07em;color:var(--khaki);margin:22px 0 8px}
+  h3{font-family:var(--disp);font-size:19px;letter-spacing:.06em;color:var(--accent);margin:16px 0 6px}
+  p{margin:6px 0}
+  .muted{color:var(--muted)}
+  .mono{font-family:var(--mono);font-size:14px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;margin:12px 0}
+  .card.hot{border-left:4px solid var(--accent)}
+  .grid{display:grid;gap:12px}
+  @media(min-width:700px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}}
+
+  .stamp{display:inline-block;font-family:var(--disp);letter-spacing:.14em;font-size:14px;color:var(--accent);
+    border:2px dashed var(--accent);padding:2px 10px;transform:rotate(-2deg);text-transform:uppercase}
+  .stat .n{font-family:var(--disp);font-size:34px;color:var(--khaki);line-height:1}
+  .stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td:first-child{white-space:nowrap}
+
+  ol,ul{margin:6px 0 6px 22px}
+  li{margin:3px 0}
+  .tag{font-family:var(--mono);font-size:11px;color:#20240F;background:var(--khaki);padding:1px 7px;border-radius:2px;letter-spacing:.06em}
+  .tag.o{background:var(--accent)}
+
+  details{border:1px solid var(--line);border-radius:3px;background:var(--panel);margin:10px 0}
+  details>summary{cursor:pointer;list-style:none;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  details>summary::-webkit-details-marker{display:none}
+  details>summary .ph{font-family:var(--disp);font-size:22px;letter-spacing:.06em;color:var(--khaki)}
+  details>summary .chev{margin-left:auto;color:var(--accent);font-family:var(--mono)}
+  details[open]>summary{border-bottom:1px solid var(--line)}
+  details .inner{padding:6px 16px 16px}
+
+  input,select,textarea{background:#242817;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);
+    font-size:14px;padding:8px 10px;border-radius:2px;width:100%}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+  label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin:8px 0 3px}
+  .btn{font-family:var(--disp);letter-spacing:.1em;font-size:17px;background:var(--accent);color:#20240F;border:none;
+    padding:9px 20px;cursor:pointer;border-radius:2px;margin-top:12px}
+  .btn:hover{background:var(--accent-dim)}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-size:14px;padding:5px 12px;margin:0}
+  .btn.ghost:hover{color:var(--danger);border-color:var(--danger)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:130px}
+
+  .chart{background:#242817;border:1px solid var(--line);border-radius:3px;padding:8px;margin-top:10px}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--khaki);color:#20240F;
+    font-family:var(--mono);font-size:13px;padding:8px 18px;border-radius:2px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1}
+  @media(prefers-reduced-motion:reduce){.toast{transition:none}}
+  .empty{font-family:var(--mono);font-size:13px;color:var(--muted);border:1px dashed var(--line);padding:14px;text-align:center;border-radius:3px}
+  .note{border-left:3px solid var(--khaki);padding:8px 12px;background:var(--panel2);font-size:14.5px;margin:10px 0}
+  .kcal{font-family:var(--mono);font-size:12px;color:var(--accent)}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em}
+
+  /* kalendář a strukturované tréninky */
+  .calHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
+  .calHead .t{font-family:var(--disp);font-size:20px;letter-spacing:.06em;color:var(--khaki);text-transform:capitalize}
+  .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .calDow{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-align:center;padding:2px 0;text-transform:uppercase}
+  .calCell{background:#242817;border:1px solid var(--line);border-radius:2px;min-height:48px;padding:3px 4px;display:flex;flex-direction:column;justify-content:space-between}
+  .calCell.off{background:transparent;border-color:transparent}
+  .calCell .dn{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .calCell.today{border-color:var(--accent)} .calCell.today .dn{color:var(--accent);font-weight:600}
+  .calCell.has{cursor:pointer} .calCell.has:hover,.calCell.has:focus-visible{border-color:var(--khaki);outline:none}
+  .dots{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+  .dot.big{width:12px;height:12px}
+  .dotmore{font-family:var(--mono);font-size:9px;color:var(--muted)}
+  .rest{font-family:var(--mono);font-size:11px;color:var(--muted);border-left:2px dashed var(--accent);padding:2px 8px;margin:5px 0 2px}
+  .calLegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px}
+  .leg{font-family:var(--mono);font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:5px}
+  details.hl{outline:2px solid var(--accent)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Polní manuál // osobní vydání</div>
+  <h1>OPERACE <span class="x">PŘESTAVBA</span></h1>
+  <div class="sub">Military bodyweight program · bez vybavení · kdekoliv · 100 kg → bojová kondice</div>
+</header>
+
+<nav id="nav">
+  <button data-t="dash" class="on">Přehled</button>
+  <button data-t="prog">Program</button>
+  <button data-t="food">Jídelníček</button>
+  <button data-t="log">Tréninky</button>
+  <button data-t="meas">Míry</button>
+  <button data-t="test">Testy</button>
+</nav>
+
+<!-- ============ PŘEHLED ============ -->
+<section class="tab on" id="tab-dash">
+  <div class="card hot">
+    <div class="row" style="align-items:center">
+      <div style="flex:2">
+        <span class="stamp" id="phaseStamp">FÁZE 0 — AKTIVNÍ</span>
+        <p class="muted" style="margin-top:10px" id="phaseDesc"></p>
+      </div>
+      <div style="flex:1;min-width:180px">
+        <label for="phaseSel">Aktuální fáze</label>
+        <select id="phaseSel">
+          <option value="0">Fáze 0 — Základní příprava</option>
+          <option value="1">Fáze 1 — Budování kapacity</option>
+          <option value="2">Fáze 2 — Vojenský standard</option>
+          <option value="3">Fáze 3 — Superčlověk</option>
+        </select>
+        <label for="phaseStartInp" style="margin-top:8px">Datum zahájení fáze</label>
+        <input type="date" id="phaseStartInp">
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g4">
+    <div class="card stat"><div class="n" id="stStreak">0</div><div class="l">dní v řadě</div></div>
+    <div class="card stat"><div class="n" id="stLogs">0</div><div class="l">tréninků celkem</div></div>
+    <div class="card stat"><div class="n" id="stWeight">—</div><div class="l">poslední váha (kg)</div></div>
+    <div class="card stat"><div class="n" id="stDelta">—</div><div class="l">změna od startu (kg)</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Dnešní rozkaz</h3>
+    <p id="todayTask" style="font-size:17px"></p>
+    <p class="mono muted" id="todayDate"></p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Váha</h3>
+    <div class="row">
+      <div><label for="wKg">Ranní váha (kg)</label><input id="wKg" type="number" step="0.1" min="40" max="250" placeholder="např. 99.4"></div>
+      <div style="align-self:end"><button class="btn" style="margin-top:0;width:100%" onclick="addWeight()">Zapsat váhu</button></div>
+    </div>
+    <div class="chart"><svg id="wChart" width="100%" height="180" viewBox="0 0 600 180" preserveAspectRatio="none" role="img" aria-label="Graf vývoje váhy"></svg></div>
+    <p class="mono muted" style="font-size:12px;margin-top:6px">Važ se 2–3× týdně ráno nalačno. Řídí se týdenní průměr, ne jednotlivé dny.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Záloha dat</h3>
+    <p class="muted" style="font-size:14px">Data žijí jen v tomto prohlížeči. Před každou aktualizací appky nebo čas od času klikni <b>Exportovat</b> a ulož si soubor — je to tvoje záchranná síť. <b>Obnovit</b> data ze zálohy můžeš kdykoliv.</p>
+    <div class="row">
+      <div><button class="btn" style="margin-top:0;width:100%" onclick="exportData()">⬇ Exportovat zálohu</button></div>
+      <div><button class="btn ghost" style="width:100%;font-size:17px;padding:9px 20px" onclick="document.getElementById('importFile').click()">⬆ Obnovit ze zálohy</button></div>
+    </div>
+    <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importData(this)">
+    <p class="mono muted" style="font-size:11px;margin-top:8px">Pozor: obnova přepíše všechna současná data obsahem souboru.</p>
+  </div>
+</section>
+
+<!-- ============ PROGRAM ============ -->
+<section class="tab" id="tab-prog">
+  <p class="note"><b>Pravidla, která se neporušují:</b> technika před počtem · bolest kloubu = o progresi níž · nikdy dva vynechané tréninky po sobě · min. 1 den úplného volna týdně. Do další fáze postupuješ podle splněných kritérií, ne podle kalendáře.</p>
+  <div id="progWrap"></div>
+
+  <h2>Strava & regenerace — stručný řád</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="margin-top:0">Strava</h3>
+      <ul>
+        <li>Deficit s cílem <b>−0,5 až −0,8 kg / týden</b>. Rychleji = ztráta svalů.</li>
+        <li>Bílkoviny <b>150–170 g denně</b>, v každém jídle.</li>
+        <li>Nula kalorií v pití. Alkohol na minimum.</li>
+        <li>Detailní jídelníček → záložka <b>Jídelníček</b>.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Regenerace</h3>
+      <ul>
+        <li>Spánek <b>7–9 h</b> — žádný trénink ho nenahradí.</li>
+        <li>Deload každý 4.–6. týden (od Fáze 2): poloviční objem.</li>
+        <li>Svalovka = normální. Ostrá bolest kloubu = varování.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JÍDELNÍČEK ============ -->
+<section class="tab" id="tab-food">
+  <div class="card hot">
+    <h3 style="margin-top:0">Zadání mise</h3>
+    <p>Výchozí bod ~100 kg, vyšší podíl tuku. Cílový příjem pro hubnutí: <b>≈ 2 200–2 400 kcal</b> a <b>≈ 160–170 g bílkovin</b> denně. To při běžné aktivitě + tomto programu dává ztrátu ~0,5–0,8 kg týdně.</p>
+    <p class="mono muted" style="font-size:13px">Kalibrace: pokud po 2–3 týdnech váha neklesá, uber ~200 kcal (typicky přílohy/tuky). Pokud padá přes 1 kg/týden dlouhodobě, ~200 kcal přidej. Bílkoviny se nikdy nesnižují.</p>
+  </div>
+
+  <h2>Pět pravidel jídelny</h2>
+  <div class="card">
+    <ol>
+      <li><b>Bílkovina v každém jídle</b> (maso, ryby, vejce, tvaroh, skyr, cottage, luštěniny). Nejvíc sytí a chrání svaly v deficitu.</li>
+      <li><b>Prvních 4–6 týdnů važ jídlo.</b> Není to navždy — je to výcvik oka. Pak už odhadneš porce sám.</li>
+      <li><b>Pití bez kalorií:</b> voda, čaj, černá káva. 3+ litry denně. Slazené nápoje jsou zrušené rozkazem.</li>
+      <li><b>Zelenina k obědu i večeři</b> — objem zdarma, sytost, mikroživiny.</li>
+      <li><b>Pravidlo 80/20:</b> 80 % jídel podle plánu, 20 % volnost. Jedno vybočení nic nezkazí, důležitý je týdenní součet.</li>
+    </ol>
+  </div>
+
+  <h2>Rotační jídelníček — 3 dny (točí se dokola)</h2>
+  <p class="muted">Váhy jsou v syrovém stavu, pokud není uvedeno jinak. Jídla lze mezi dny libovolně prohazovat — čísla vycházejí podobně.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">DEN A <span class="kcal">≈ 2 300 kcal · 165 g B</span></h3>
+    <table>
+      <tr><th>Jídlo</th><th>Složení</th><th class="mono">kcal / B</th></tr>
+      <tr><td><b>Snídaně</b></td><td>Skyr 250 g + ovesné vločky 60 g + 1 banán + skořice</td><td class="mono">560 / 35 g</td></tr>
+      <tr><td><b>Oběd</b></td><td>Kuřecí prsa 200 g + rýže 80 g (syrová) + zelenina dle chuti + olivový olej 1 lžička</td><td class="mono">640 / 52 g</td></tr>
+      <tr><td><b>Svačina</b></td><td>Tvaroh polotučný 250 g + hrst vlašských ořechů (20 g)</td><td class="mono">380 / 30 g</td></tr>
+      <tr><td><b>Večeře</b></td><td>3 vejce natvrdo/omeleta + žitný chléb 2 krajíce + cottage 100 g + rajčata, okurka</td><td class="mono">620 / 45 g</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">DEN B <span class="kcal">≈ 2 250 kcal · 168 g B</span></h3>
+    <table>
+      <tr><th>Jídlo</th><th>Složení</th><th class="mono">kcal / B</th></tr>
+      <tr><td><b>Snídaně</b></td><td>Omeleta ze 3 vajec + šunka nejvyšší jakosti 50 g + žitný chléb 1 krajíc + paprika</td><td class="mono">520 / 38 g</td></tr>
+      <tr><td><b>Oběd</b></td><td>Mleté hovězí do 10 % tuku 200 g + brambory 350 g + dušená zelenina</td><td class="mono">700 / 46 g</td></tr>
+      <tr><td><b>Svačina</b></td><td>Skyr 150 g + 1 jablko</td><td class="mono">220 / 16 g</td></tr>
+      <tr><td><b>Večeře</b></td><td>Losos nebo treska 200 g + kuskus 70 g (syrový) + velký zeleninový salát s 1 lžičkou oleje</td><td class="mono">640 / 48 g</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">DEN C <span class="kcal">≈ 2 300 kcal · 170 g B</span></h3>
+    <table>
+      <tr><th>Jídlo</th><th>Složení</th><th class="mono">kcal / B</th></tr>
+      <tr><td><b>Snídaně</b></td><td>Ovesné vločky 70 g + mléko 250 ml (příp. + odměrka syrovátkového proteinu) + borůvky</td><td class="mono">560 / 38 g</td></tr>
+      <tr><td><b>Oběd</b></td><td>Krůtí prsa 200 g + těstoviny 80 g (syrové) + rajčatová omáčka + parmazán 10 g</td><td class="mono">680 / 55 g</td></tr>
+      <tr><td><b>Svačina</b></td><td>Cottage 150 g + žitné knäckebroty 2 ks</td><td class="mono">240 / 20 g</td></tr>
+      <tr><td><b>Večeře</b></td><td>Tuňák ve vlastní šťávě 2 konzervy + fazole 1 malá plechovka + zeleninový salát + 1 lžička oleje</td><td class="mono">560 / 57 g</td></tr>
+    </table>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="margin-top:0">Nouzové zásoby (když nestíháš)</h3>
+      <ul>
+        <li>Skyr / řecký jogurt + banán — svačina za 30 sekund</li>
+        <li>Tuňák + knäckebrot — večeře bez vaření</li>
+        <li>Vejce natvrdo uvařená dopředu na 3 dny</li>
+        <li>Mražená zelenina — vždy v mrazáku, žádné výmluvy</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Tréninkové dny navíc</h3>
+      <ul>
+        <li>Po tvrdším tréninku (PT okruh, dlouhý běh) klidně <b>+1 přílohu</b> k obědu — pořád budeš v deficitu.</li>
+        <li>Před tréninkem stačí lehká svačina 60–90 min předem (banán, jogurt).</li>
+        <li>Do 2 h po tréninku jídlo s bílkovinou — v rozpisu už je.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="mono muted" style="font-size:12px">Jde o obecný rámec pro zdravého dospělého. Pokud máš zdravotní omezení nebo bereš léky, probrat s lékařem.</p>
+</section>
+
+<!-- ============ TRÉNINKY ============ -->
+<section class="tab" id="tab-log">
+  <button class="btn" style="margin-top:4px" onclick="toggleWoForm()">+ Zapsat nový trénink</button>
+
+  <div class="card hot" id="woForm" style="display:none">
+    <h3 style="margin-top:0">Nový trénink</h3>
+    <div class="row">
+      <div><label for="wfDate">Datum tréninku</label><input type="date" id="wfDate"></div>
+      <div><label for="wfType">Trénink (nabídka podle aktuální fáze)</label><select id="wfType"></select></div>
+    </div>
+    <div id="wfEx"></div>
+    <label for="wfNote">Poznámka k tréninku</label>
+    <textarea id="wfNote" rows="2" placeholder="pocit, podmínky, kolena/ramena, terén…"></textarea>
+    <button class="btn" onclick="saveWorkout()">Uložit trénink</button>
+  </div>
+
+  <div class="card">
+    <div class="calHead">
+      <button class="btn ghost" onclick="calShift(-1)" aria-label="Předchozí měsíc">‹</button>
+      <span class="t" id="calTitle"></span>
+      <button class="btn ghost" onclick="calShift(1)" aria-label="Další měsíc">›</button>
+    </div>
+    <div class="calGrid" id="calGrid"></div>
+    <div class="calLegend" id="calLegend"></div>
+    <p class="mono muted" style="font-size:11px;margin-top:8px">Klik na den s tečkou tě přenese na zápis tréninku.</p>
+  </div>
+
+  <h2>Zapsané tréninky</h2>
+  <div id="woList"></div>
+  <div id="oldLogs"></div>
+</section>
+
+<!-- ============ MÍRY ============ -->
+<section class="tab" id="tab-meas">
+  <p class="note">Váha lže — zvlášť u začátečníka, kde jde tuk dolů a sval nahoru zároveň. <b>Míry ukazují, co se s tělem opravdu děje.</b> Měř vždy ráno nalačno, krejčovským metrem, na holé kůži, metr přiložený těsně, ale nezaříznutý. Konzistence > přesnost: stejné místo, stejná strana, stejná denní doba.</p>
+
+  <div class="card hot">
+    <h3 style="margin-top:0">Nové měření</h3>
+    <p class="mono muted" style="font-size:12px">Vyplň jen to, co dnes měříš — zbytek nech prázdný.</p>
+    <div class="row" style="max-width:260px"><div><label for="mDate">Datum</label><input type="date" id="mDate"></div></div>
+    <div class="row" id="mInputs"></div>
+    <button class="btn" onclick="addMeasure()">Uložit měření</button>
+  </div>
+
+  <div class="card">
+    <div class="row" style="align-items:end">
+      <div><h3 style="margin:0 0 6px">Vývoj v čase</h3></div>
+      <div style="max-width:240px"><label for="mSel">Zobrazená míra</label><select id="mSel"></select></div>
+    </div>
+    <div class="chart"><svg id="mChart" width="100%" height="180" viewBox="0 0 600 180" preserveAspectRatio="none" role="img" aria-label="Graf vývoje míry"></svg></div>
+    <div class="grid g3" id="mStats" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Jak často a jak měřit</h3>
+    <div style="overflow-x:auto"><table id="mGuide"></table></div>
+    <p class="mono muted" style="font-size:12px;margin-top:8px">+ FOTKY 1× měsíčně: stejné místo, světlo i póza (zepředu, z boku). Oko denní změnu nevidí, fotka s měsíčním odstupem ano.</p>
+  </div>
+
+  <h2>Historie měření</h2>
+  <div id="mList" style="overflow-x:auto"></div>
+</section>
+
+<section class="tab" id="tab-test">
+  <p class="note">Testuj se <b>na začátku a na konci každé fáze</b> — baterie je vždy stejná, aby šla čísla porovnat v čase; mění se jen laťka (kritéria postupu u každé fáze v Programu). <b>Vytrvalostní disciplína:</b> dokud nesplníš 20 min běhu v kuse (kritérium Fáze 1), testuješ <b>chůzi 3 km</b>; od té chvíle už natrvalo <b>běh 3,2 km</b> — do políčka zapiš čas i variantu. Tip: test můžeš zapsat i v záložce Tréninky jako „Testovací baterie" — propíše se sem sám a ukáže se v kalendáři.</p>
+  <div class="card hot">
+    <h3 style="margin-top:0">Nový test</h3>
+    <div class="row">
+      <div><label for="tDate">Datum</label><input type="date" id="tDate"></div>
+      <div><label for="tPush">Kliky max (op.)</label><input type="number" id="tPush" min="0" placeholder="—"></div>
+      <div><label for="tSquat">Dřepy / 2 min</label><input type="number" id="tSquat" min="0" placeholder="—"></div>
+    </div>
+    <div class="row">
+      <div><label for="tPlank">Plank (s)</label><input type="number" id="tPlank" min="0" placeholder="—"></div>
+      <div><label for="tRun">Chůze 3 km / běh 3,2 km (čas)</label><input type="text" id="tRun" placeholder="mm:ss"></div>
+      <div><label for="tHr">Klidová TF (tep/min)</label><input type="number" id="tHr" min="30" max="130" placeholder="—"></div>
+    </div>
+    <div class="row">
+      <div><label for="tW">Váha (kg)</label><input type="number" id="tW" step="0.1" placeholder="—"></div>
+      <div><label for="tWaist">Obvod pasu (cm)</label><input type="number" id="tWaist" step="0.5" placeholder="—"></div>
+      <div></div>
+    </div>
+    <button class="btn" onclick="addTest()">Uložit test</button>
+  </div>
+  <h2>Historie testů</h2>
+  <div id="testList" style="overflow-x:auto"></div>
+</section>
+
+<footer>OPERACE PŘESTAVBA · verze 1.0 (offline) · data se ukládají jen v tomto zařízení — nikam se neodesílají · zálohuj přes Export</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- data programu ---------- */
+const PHASES=[
+{n:"FÁZE 0 — ZÁKLADNÍ PŘÍPRAVA",t:"týdny 1–6",d:"Staví se podvozek: šlachy, klouby, návyk, první kila dole. Nezávodí se.",
+ week:[["Po","Silový okruh A"],["Út","Svižná chůze 30–45 min"],["St","Silový okruh B"],["Čt","Volno (lehká procházka OK)"],["Pá","Silový okruh A"],["So","Dlouhá chůze 60–90 min, klidně terén"],["Ne","Úplné volno"]],
+ blocks:[
+ {h:"Silový okruh A · 3 kola (pauzy 30–60 s / 2 min mezi koly)",items:["Kliky o vyvýšení (lavička, zídka, pařez) — 8–12 op.","Dřep na plný rozsah, 2 s výdrž dole — 10–15 op.","Plank na předloktí — 20–40 s","Glute bridge (most) — 12–15 op.","Výpady s oporou nebo v chůzi — 6–8 op./noha"]},
+ {h:"Silový okruh B · 3 kola",items:["Kliky z kolen nebo o vyvýšení — 8–12 op.","Dřep s výdrží 3 s dole — 8–12 op.","Boční plank — 15–30 s/strana","Superman — 10–12 op.","Výstupy na schod/pařez — 8–10 op./noha","Dead bug — 8 op./strana"]},
+ {h:"Vytrvalost",items:["Svižná chůze: tempo „mluvit ano, zpívat ne“","Poslední 2 týdny: do chůze 4–6× 1 min velmi lehkého poklusu, pokud nic nebolí"]}],
+ crit:["3× 12 kliků o vyvýšení čistě","3× 15 plných dřepů","Plank 60 s","60 min chůze bez problémů","Ideálně první 3–5 kg dole"]},
+
+{n:"FÁZE 1 — BUDOVÁNÍ KAPACITY",t:"týdny 7–14",d:"Plné kliky, první běžecké intervaly, první rucky. Z civilisty se stává rekrut.",
+ week:[["Po","Síla — tlaky a core"],["Út","Intervaly běh/chůze"],["St","Síla — nohy a core"],["Čt","Chůze 45 min + mobilita"],["Pá","Kombinovaný vojenský okruh"],["So","Ruck 60–90 min s 5–8 kg (batoh s vodou)"],["Ne","Úplné volno"]],
+ blocks:[
+ {h:"Tlaky a core · 4 kola",items:["Plné kliky — max op. minus 2 (ne do selhání)","Pike kliky — 5–8 op.","Plank s dotykem ramen — 10 op./strana","Hollow hold — 15–25 s","Finisher: kliky o vyvýšení do vyčerpání techniky"]},
+ {h:"Nohy a core · 4 kola",items:["Dřepy tempo 3-1-1 — 12–15 op.","Výpady vzad — 8–10 op./noha","Bulharský dřep (noha na pařezu) — 6–8 op./noha","Wall sit — 30–45 s","Leh-sedy — 15–20 op.","Výpony na lýtka na hraně — 15–20 op."]},
+ {h:"Intervaly (vždy 5 min chůze před i po)",items:["T7–8: 8× (1 min klus / 2 min chůze)","T9–10: 8× (90 s / 90 s)","T11–12: 6× (3 min klus / 90 s chůze)","T13–14: 4× (5 min klus / 2 min chůze)","Klus = konverzační tempo"]},
+ {h:"Vojenský okruh (Pá) · 5 kol na čas, zapisuj",items:["10 kliků","15 dřepů","10 výpadů celkem","20 s plank","20 jumping jacks","100 m svižně"]}],
+ crit:["3× 15 plných kliků","20 min souvislého klusu","Wall sit 60 s · plank 90 s","Bulharský dřep 3× 8/noha čistě"]},
+
+{n:"FÁZE 2 — VOJENSKÝ STANDARD",t:"týdny 15–26",d:"Plyometrie, delší běhy, práce pod únavou. Cíl: vstupní standard armády.",
+ week:[["Po","Síla — horní polovina + core"],["Út","Souvislý běh 25–40 min"],["St","Nohy + úvod do plyometrie"],["Čt","Ruck 60–90 min s 8–12 kg / kopce"],["Pá","Vojenský PT okruh"],["So","Dlouhý běh v terénu 40–60 min"],["Ne","Volno + mobilita 20 min"]],
+ blocks:[
+ {h:"Horní polovina · 4–5 kol",items:["Kliky — 12–20 op.","Diamond kliky — 6–10 op.","Pike kliky s nohama na vyvýšení — 6–10 op.","Archer kliky — 4–6 op./strana","Hollow hold 30 s + superman 15 op.","Volitelně: shyby na větvi/hraně — max op. (silně doporučeno)"]},
+ {h:"Nohy + plyometrie (čerstvý, měkký povrch)",items:["Výskoky na místě, měkký dopad — 3× 5","Výskoky na nízký pařez — 3× 5","Dřepy — 4× 15–20","Výpady v chůzi — 3× 10/noha","Pistol progrese na lavičku — 3× 4–6/noha","Wall sit — 60–90 s"]},
+ {h:"PT okruh „smoker“ (Pá) · AMRAP 20 min",items:["10 burpees (progrese: bez kliku → s výskokem → plné)","15 kliků","20 dřepů","15 leh-sedů","20 mountain climbers (celkem) — teď už na ně máš core","10 jump squats","200 m běh","Cíl: +2 kola oproti prvnímu pokusu"]}],
+ crit:["40+ kliků v kuse","45+ leh-sedů / 2 min","3,2 km pod 17:30","5 km běh bez zastavení","Plné burpees s čistou technikou"]},
+
+{n:"FÁZE 3 — SUPERČLOVĚK",t:"týden 27+ · trvalý režim",d:"Elitní progrese, sprinty, dlouhé rucky. Každý 4. týden deload (−40 % objemu).",
+ week:[["Po","Maximální síla — pokročilé progrese"],["Út","Sprinty a intervaly"],["St","Objemová síla + core"],["Čt","Ruck 90–120 min s 15–20 kg"],["Pá","Selection day"],["So","Dlouhý běh 8–12 km v terénu"],["Ne","Volno + mobilita"]],
+ blocks:[
+ {h:"Dlouhodobé silové progrese",items:["Kliky: archer → asistovaný jednoruční → jednoruční","Nohy: pistol na lavičku → plný pistol → pistol s výskokem","Plyo: klik s tlesknutím, skoky do dálky, boční skoky, vyšší výskoky","Core: hollow rocks, V-sedy, dragon flag progrese, plank 3+ min","Tahy (větev/hrana): shyby → výdrže → archer shyby"]},
+ {h:"Sprinty (Út)",items:["Rozehřátí 10 min + dynamický strečink","6–10× 60–100 m na ~90 %, chůze zpět = pauza","Varianta kopec: 8× 30 s nahoru naplno"]},
+ {h:"Selection day (Pá) · na čas",items:["2 km běh","50 kliků","100 dřepů","50 leh-sedů","40 výpadů","30 burpees","2 km běh"]}],
+ crit:["60–80 kliků · 20 shybů · plný pistol","10 km pod 50 min · ruck 20 km / 20 kg","Klidová TF pod 55","Váha ~82–88 kg dle výšky"]}];
+
+const TASKS={ // dnešní rozkaz podle fáze a dne (0=Ne)
+ 0:["Úplné volno — regenerace je taky rozkaz.","Silový okruh A","Svižná chůze 30–45 min","Silový okruh B","Volno, max lehká procházka","Silový okruh A","Dlouhá chůze 60–90 min"],
+ 1:["Úplné volno.","Síla — tlaky a core","Intervaly běh/chůze","Síla — nohy a core","Chůze 45 min + mobilita","Kombinovaný vojenský okruh — na čas!","Ruck 60–90 min s 5–8 kg"],
+ 2:["Volno + 20 min mobility.","Síla — horní polovina + core","Souvislý běh 25–40 min","Nohy + plyometrie","Ruck s 8–12 kg nebo kopce","PT okruh „smoker“ — AMRAP 20 min","Dlouhý běh v terénu 40–60 min"],
+ 3:["Volno + mobilita.","Maximální síla — progrese","Sprinty","Objemová síla + core","Ruck 90–120 min s 15–20 kg","SELECTION DAY — na čas","Dlouhý běh 8–12 km"]};
+
+/* ---------- šablony tréninků (barva = typ) ---------- */
+const CL={sila:'#EF7A17',nohy:'#E3C567',run:'#9FBF6B',long:'#6FB3A0',ruck:'#B08D57',pt:'#D96A4A',spr:'#E56B8C',mob:'#82A7C4'};
+const WORKOUTS={
+0:[
+ {k:'silaA',name:'Silový okruh A',c:CL.sila,info:'3 kola · zapisuj opakování po kolech, např. „12/11/10“',ex:[
+  {n:'Kliky o vyvýšení',t:'8–12 op.',r:'Pauza 30–60 s'},
+  {n:'Dřep na plný rozsah (2 s dole)',t:'10–15 op.',r:'Pauza 30–60 s'},
+  {n:'Plank na předloktí',t:'20–40 s',r:'Pauza 30–60 s'},
+  {n:'Glute bridge (most)',t:'12–15 op.',r:'Pauza 30–60 s'},
+  {n:'Výpady s oporou / v chůzi',t:'6–8 op./noha',r:'Pauza mezi koly 2 min'}]},
+ {k:'silaB',name:'Silový okruh B',c:CL.nohy,info:'3 kola · zapisuj opakování po kolech',ex:[
+  {n:'Kliky z kolen / o vyvýšení',t:'8–12 op.',r:'Pauza 30–60 s'},
+  {n:'Dřep s výdrží 3 s dole',t:'8–12 op.',r:'Pauza 30–60 s'},
+  {n:'Boční plank',t:'15–30 s/strana',r:'Pauza 30–60 s'},
+  {n:'Superman',t:'10–12 op.',r:'Pauza 30–60 s'},
+  {n:'Výstupy na schod/pařez',t:'8–10 op./noha',r:'Pauza 30–60 s'},
+  {n:'Dead bug',t:'8 op./strana',r:'Pauza mezi koly 2 min'}]},
+ {k:'chuze',name:'Svižná chůze',c:CL.run,info:'Tempo: mluvit ano, zpívat ne.',ex:[
+  {n:'Délka chůze',t:'30–45 min'},
+  {n:'Poklusové úseky (poslední 2 týdny fáze)',t:'4–6× 1 min'}]},
+ {k:'dlouha',name:'Dlouhá chůze / terén',c:CL.long,ex:[
+  {n:'Délka',t:'60–90 min'},{n:'Vzdálenost',t:'km'}]},
+ {k:'mob',name:'Mobilita / jiné',c:CL.mob,ex:[{n:'Náplň',t:'volný zápis'}]}
+],
+1:[
+ {k:'tlaky',name:'Síla — tlaky a core',c:CL.sila,info:'4 kola',ex:[
+  {n:'Plné kliky',t:'max op. −2',r:'Pauza 60 s'},
+  {n:'Pike kliky',t:'5–8 op.',r:'Pauza 60 s'},
+  {n:'Plank s dotykem ramen',t:'10 op./strana',r:'Pauza 30–60 s'},
+  {n:'Hollow hold',t:'15–25 s',r:'Pauza mezi koly 2 min'},
+  {n:'Finisher: kliky o vyvýšení',t:'do vyčerpání techniky'}]},
+ {k:'nohy1',name:'Síla — nohy a core',c:CL.nohy,info:'4 kola',ex:[
+  {n:'Dřepy tempo 3-1-1',t:'12–15 op.',r:'Pauza 60 s'},
+  {n:'Výpady vzad',t:'8–10 op./noha',r:'Pauza 60 s'},
+  {n:'Bulharský dřep',t:'6–8 op./noha',r:'Pauza 60 s'},
+  {n:'Wall sit',t:'30–45 s',r:'Pauza 30–60 s'},
+  {n:'Leh-sedy',t:'15–20 op.',r:'Pauza 30–60 s'},
+  {n:'Výpony na lýtka na hraně',t:'15–20 op.',r:'Pauza mezi koly 2 min'}]},
+ {k:'interv',name:'Intervaly běh/chůze',c:CL.run,info:'Vždy 5 min chůze před i po. Klus = konverzační tempo.',ex:[
+  {n:'Provedený protokol',t:'např. 8× (1 min klus / 2 min chůze)'},
+  {n:'Celkový čas',t:'min'},
+  {n:'Pocit / tempo',t:'volný zápis'}]},
+ {k:'okruh1',name:'Vojenský okruh (5 kol na čas)',c:CL.pt,info:'Stanoviště jdou hned za sebou, mezi koly pauza dle potřeby. Zapiš varianty a případné odchylky.',ex:[
+  {n:'10 kliků',t:'varianta / splněno',r:'Bez pauzy → další stanoviště'},
+  {n:'15 dřepů',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'10 výpadů celkem',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'20 s plank',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'20 jumping jacks',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'100 m svižně',t:'splněno?',r:'Konec kola → pauza dle potřeby, pak další kolo'},
+  {n:'CELKOVÝ ČAS 5 KOL',t:'mm:ss'}]},
+ {k:'ruck1',name:'Ruck 5–8 kg',c:CL.ruck,ex:[
+  {n:'Délka',t:'60–90 min'},{n:'Zátěž',t:'kg'},{n:'Vzdálenost',t:'km'}]},
+ {k:'mob',name:'Mobilita / jiné',c:CL.mob,ex:[{n:'Náplň',t:'volný zápis'}]}
+],
+2:[
+ {k:'horni',name:'Síla — horní polovina',c:CL.sila,info:'4–5 kol',ex:[
+  {n:'Kliky',t:'12–20 op.',r:'Pauza 60 s'},
+  {n:'Diamond kliky',t:'6–10 op.',r:'Pauza 60 s'},
+  {n:'Pike kliky, nohy na vyvýšení',t:'6–10 op.',r:'Pauza 60 s'},
+  {n:'Archer kliky',t:'4–6 op./strana',r:'Pauza 60–90 s'},
+  {n:'Hollow hold + superman',t:'30 s + 15 op.',r:'Pauza mezi koly 2 min'},
+  {n:'Shyby na větvi/hraně (volitelné)',t:'max op.'}]},
+ {k:'plyo',name:'Nohy + plyometrie',c:CL.nohy,info:'Plyometrie vždy čerstvý, na měkkém povrchu, měkké dopady.',ex:[
+  {n:'Výskoky na místě',t:'3× 5',r:'Plná pauza 60–90 s'},
+  {n:'Výskoky na nízký pařez/schod',t:'3× 5',r:'Plná pauza 60–90 s'},
+  {n:'Dřepy',t:'4× 15–20',r:'Pauza 60 s'},
+  {n:'Výpady v chůzi',t:'3× 10/noha',r:'Pauza 60 s'},
+  {n:'Pistol progrese na lavičku',t:'3× 4–6/noha',r:'Pauza 60–90 s'},
+  {n:'Wall sit',t:'60–90 s'}]},
+ {k:'beh2',name:'Souvislý běh',c:CL.run,ex:[
+  {n:'Délka',t:'25–40 min'},{n:'Vzdálenost',t:'km'},{n:'Tempo / pocit',t:'volný zápis'}]},
+ {k:'pt2',name:'PT okruh „smoker" (AMRAP 20 min)',c:CL.pt,info:'Kolo = všechna stanoviště za sebou. Cíl: časem +2 kola oproti prvnímu pokusu.',ex:[
+  {n:'10 burpees',t:'varianta',r:'Bez pauzy → další stanoviště'},
+  {n:'15 kliků',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'20 dřepů',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'15 leh-sedů',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'20 mountain climbers celkem',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'10 jump squats',t:'splněno?',r:'Bez pauzy → další stanoviště'},
+  {n:'200 m běh',t:'splněno?',r:'Rovnou další kolo'},
+  {n:'POČET KOL ZA 20 MIN',t:'kola (+ rozpracované)'}]},
+ {k:'ruck2',name:'Ruck 8–12 kg / kopce',c:CL.ruck,ex:[
+  {n:'Délka',t:'60–90 min'},{n:'Zátěž',t:'kg'},{n:'Vzdálenost / převýšení',t:'km / m'}]},
+ {k:'dlouhy2',name:'Dlouhý běh v terénu',c:CL.long,ex:[
+  {n:'Délka',t:'40–60 min'},{n:'Vzdálenost',t:'km'}]},
+ {k:'mob',name:'Mobilita / jiné',c:CL.mob,ex:[{n:'Náplň',t:'volný zápis'}]}
+],
+3:[
+ {k:'max',name:'Maximální síla — progrese',c:CL.sila,info:'4–6 kol, dlouhé pauzy — jde o kvalitu, ne o zadýchání.',ex:[
+  {n:'Kliková progrese (archer → jednoruční)',t:'série × op.',r:'Pauza 2–3 min'},
+  {n:'Pistol progrese',t:'série × op./noha',r:'Pauza 2–3 min'},
+  {n:'Plyometrický prvek (tlesk, skoky)',t:'série × op.',r:'Pauza 2–3 min'},
+  {n:'Core (hollow rocks, dragon flag…)',t:'série × op./s',r:'Pauza 2 min'},
+  {n:'Shyby / tahy na větvi',t:'max op.'}]},
+ {k:'spr',name:'Sprinty',c:CL.spr,info:'Rozehřátí 10 min klus + dynamický strečink. Pauza = chůze zpět.',ex:[
+  {n:'Počet sprintů',t:'6–10'},
+  {n:'Délka úseku',t:'60–100 m / 30 s kopec'},
+  {n:'Kvalita posledního sprintu',t:'% z prvního'}]},
+ {k:'obj',name:'Objemová síla + core',c:CL.nohy,info:'Nasbírej objem v kvalitě — rozděl do sérií dle potřeby.',ex:[
+  {n:'Kliky celkem',t:'op.',r:'Série dle potřeby, pauzy 60–90 s'},
+  {n:'Dřepy celkem',t:'op.',r:'Série dle potřeby'},
+  {n:'Výpady celkem',t:'op.',r:'Série dle potřeby'},
+  {n:'Core celkem',t:'min / op.'}]},
+ {k:'ruck3',name:'Ruck 15–20 kg',c:CL.ruck,ex:[
+  {n:'Délka',t:'90–120 min'},{n:'Zátěž',t:'kg'},{n:'Vzdálenost',t:'km'}]},
+ {k:'sel',name:'Selection day (na čas)',c:CL.pt,info:'Zapisuj mezičasy — uvidíš, kde ztrácíš.',ex:[
+  {n:'2 km běh',t:'čas',r:'Rovnou dál'},
+  {n:'50 kliků',t:'rozdělení sérií',r:'Rovnou dál'},
+  {n:'100 dřepů',t:'rozdělení',r:'Rovnou dál'},
+  {n:'50 leh-sedů',t:'rozdělení',r:'Rovnou dál'},
+  {n:'40 výpadů',t:'splněno?',r:'Rovnou dál'},
+  {n:'30 burpees',t:'rozdělení',r:'Rovnou dál'},
+  {n:'2 km běh',t:'čas'},
+  {n:'CELKOVÝ ČAS',t:'hh:mm:ss'}]},
+ {k:'dlouhy3',name:'Dlouhý běh 8–12 km',c:CL.long,ex:[
+  {n:'Vzdálenost',t:'km'},{n:'Čas',t:'hh:mm'}]},
+ {k:'mob',name:'Mobilita / jiné',c:CL.mob,ex:[{n:'Náplň',t:'volný zápis'}]}
+]};
+
+const TESTW={k:'test',name:'Testovací baterie',c:'#A98BD4',info:'Den 1 každé fáze + její závěr. Mezi disciplínami plná pauza 3–5 min. Vytrvalost: dokud neuběhneš 20 min v kuse (kritérium Fáze 1), testuj CHŮZI 3 km; potom už natrvalo BĚH 3,2 km. Zápis se automaticky propíše i do záložky Testy.',ex:[
+ {n:'Kliky',t:'max op. v kuse',r:'Plná pauza 3–5 min'},
+ {n:'Dřepy',t:'max op. za 2 min',r:'Plná pauza 3–5 min'},
+ {n:'Plank',t:'max výdrž (s)',r:'Plná pauza 3–5 min'},
+ {n:'Chůze 3 km NEBO běh 3,2 km',t:'čas + varianta',r:'Konec — 5 min vychodit/vyklusat'},
+ {n:'Klidová TF (ráno po probuzení)',t:'tep/min'},
+ {n:'Váha (ráno nalačno)',t:'kg'},
+ {n:'Obvod pasu',t:'cm'}]};
+const VOLNO={k:'volno',name:'Volno / regenerace',c:'#8A9178',info:'Zapiš i den volna — plánované, nemoc nebo přesunutý trénink. Drží streak a kalendář ukazuje pravdu. Nástroj sebekázně, ne alibi.',ex:[
+ {n:'Důvod',t:'plánované / nemoc / přesun'},
+ {n:'Aktivita',t:'procházka, strečink… klidně nic'}]};
+[0,1,2,3].forEach(pi=>WORKOUTS[pi].push(TESTW,VOLNO));
+
+/* ---------- stav a úložiště ---------- */
+let state={phase:0,phaseStart:null,weights:[],logs:[],tests:[],workouts:[],measures:[]};
+let storageOK=true;
+const LS_KEY='operace-prestavba';
+
+function load(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw) state=Object.assign(state,JSON.parse(raw));
+  }catch(e){ storageOK=false; }
+  renderAll();
+}
+function save(msg){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(state));
+    storageOK=true;
+    toast(msg||'Uloženo');
+  }catch(e){
+    storageOK=false;
+    toast('Úložiště nedostupné — zkontroluj nastavení prohlížeče');
+  }
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ---------- záloha: export / import ---------- */
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const d=today();
+  a.href=url;a.download='prestavba-zaloha-'+d+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Záloha stažena');
+}
+function importData(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const obj=JSON.parse(rd.result);
+      if(typeof obj!=='object'||obj===null) throw new Error('bad');
+      if(!confirm('Nahradit VŠECHNA současná data obsahem zálohy? Tuto akci nelze vzít zpět.')){input.value='';return;}
+      state=Object.assign({phase:0,phaseStart:null,weights:[],logs:[],tests:[],workouts:[],measures:[]},obj);
+      save('Data obnovena ze zálohy');
+      buildWfSelect();renderAll();
+    }catch(e){ toast('Soubor se nepodařilo načíst — je to správná záloha?'); }
+    input.value='';
+  };
+  rd.readAsText(file);
+}
+
+/* ---------- navigace ---------- */
+document.getElementById('nav').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('section.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+b.dataset.t));
+});
+
+/* ---------- přehled ---------- */
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function today(){return new Date().toISOString().slice(0,10);}
+function fmtD(d){const[y,m,dd]=d.split('-');return dd+'. '+m+'. '+y;}
+
+function renderDash(){
+  const p=state.phase;
+  document.getElementById('phaseSel').value=p;
+  document.getElementById('phaseStartInp').value=state.phaseStart||'';
+  const LEN=[6,8,12,0]; // plánovaná délka fází v týdnech (F3 bez limitu)
+  const tD=today();
+  let wk=null;
+  if(state.phaseStart){
+    const diff=Math.floor((new Date(tD)-new Date(state.phaseStart))/86400000);
+    wk=diff<0?-1:Math.floor(diff/7)+1;
+  }
+  let stamp=PHASES[p].n.split('—')[0].trim();
+  stamp+=wk===null?' — AKTIVNÍ':wk===-1?' — START '+fmtD(state.phaseStart):' — TÝDEN '+wk+(LEN[p]?'/'+LEN[p]:'');
+  document.getElementById('phaseStamp').textContent=stamp;
+  document.getElementById('phaseDesc').textContent=PHASES[p].d;
+  const dow=new Date().getDay();
+  let task=TASKS[p][dow];
+  if(state.phaseStart===tD) task='DEN 1 FÁZE: vstupní test. Zapiš přes Tréninky → „+ Zapsat nový trénink" → Testovací baterie.';
+  else if(wk===-1) task='Fáze startuje '+fmtD(state.phaseStart)+'. Do té doby lehká chůze a pořádný spánek.';
+  else if(wk&&LEN[p]&&wk>LEN[p]) task='Fáze přesáhla plánovanou délku ('+LEN[p]+' týdnů) — udělej výstupní test a zkontroluj kritéria postupu. Dle rozvrhu dnes: '+task;
+  else if(wk&&LEN[p]&&wk===LEN[p]) task=task+' · Poslední týden fáze — naplánuj výstupní test.';
+  document.getElementById('todayTask').textContent=task;
+  document.getElementById('todayDate').textContent=new Date().toLocaleDateString('cs-CZ',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('stLogs').textContent=state.logs.length+state.workouts.length;
+  // streak: po sobě jdoucí dny na plánu — zapsaný trénink NEBO plánované volno dle rozvrhu fáze
+  const days=new Set([...state.logs.map(l=>l.d),...state.workouts.map(w=>w.d)]);
+  const isRest=dt=>/volno/i.test(TASKS[state.phase][dt.getDay()]);
+  const key=dt=>dt.toISOString().slice(0,10);
+  let streak=0,hadLog=false,cur=new Date();
+  if(!days.has(today())&&!isRest(new Date())) cur.setDate(cur.getDate()-1);
+  while((days.has(key(cur))||isRest(cur))&&streak<3650){
+    if(days.has(key(cur)))hadLog=true;
+    streak++;cur.setDate(cur.getDate()-1);
+  }
+  if(!hadLog)streak=0;
+  document.getElementById('stStreak').textContent=streak;
+  const ws=[...state.weights].sort((a,b)=>a.d.localeCompare(b.d));
+  document.getElementById('stWeight').textContent=ws.length?ws[ws.length-1].kg.toFixed(1):'—';
+  document.getElementById('stDelta').textContent=ws.length>1?(ws[ws.length-1].kg-ws[0].kg).toFixed(1):'—';
+  drawChart(ws);
+}
+function drawChart(ws){
+  const svg=document.getElementById('wChart');
+  if(ws.length<2){svg.innerHTML='<text x="300" y="95" text-anchor="middle" fill="#A8AE8E" font-family="IBM Plex Mono" font-size="13">Zapiš aspoň dvě vážení a graf se vykreslí</text>';return;}
+  const W=600,H=180,P=26;
+  const min=Math.min(...ws.map(w=>w.kg))-1,max=Math.max(...ws.map(w=>w.kg))+1;
+  const x=i=>P+i*(W-2*P)/(ws.length-1), y=v=>H-P-(v-min)*(H-2*P)/(max-min);
+  let g='';for(let i=0;i<5;i++){const yy=P+i*(H-2*P)/4;g+=`<line x1="${P}" y1="${yy}" x2="${W-P}" y2="${yy}" stroke="#3d4430" stroke-width="1"/><text x="4" y="${yy+4}" fill="#7e8468" font-size="10" font-family="IBM Plex Mono">${(max-(max-min)*i/4).toFixed(1)}</text>`;}
+  const pts=ws.map((w,i)=>x(i)+','+y(w.kg)).join(' ');
+  const dots=ws.map((w,i)=>`<circle cx="${x(i)}" cy="${y(w.kg)}" r="3.5" fill="#EF7A17"/>`).join('');
+  svg.innerHTML=g+`<polyline points="${pts}" fill="none" stroke="#EF7A17" stroke-width="2.5" stroke-linejoin="round"/>`+dots;
+}
+document.getElementById('phaseSel').addEventListener('change',e=>{state.phase=+e.target.value;state.phaseStart=today();save('Fáze změněna — start nastaven na dnešek, uprav dle potřeby');renderDash();buildWfSelect();renderTraining();});
+document.getElementById('phaseStartInp').addEventListener('change',e=>{state.phaseStart=e.target.value||null;save('Datum zahájení fáze uloženo');renderDash();});
+
+async function addWeight(){
+  const v=parseFloat(document.getElementById('wKg').value);
+  if(!v||v<40||v>250){toast('Zadej váhu 40–250 kg');return;}
+  const d=today();
+  const ex=state.weights.find(w=>w.d===d);
+  if(ex) ex.kg=v; else state.weights.push({d,kg:v});
+  document.getElementById('wKg').value='';
+  save('Váha zapsána');renderDash();
+}
+
+/* ---------- program ---------- */
+function renderProg(){
+  const w=document.getElementById('progWrap');
+  w.innerHTML=PHASES.map((p,i)=>`
+  <details ${i===state.phase?'open':''}>
+    <summary><span class="ph">${p.n}</span><span class="tag${i===state.phase?' o':''}">${i===state.phase?'AKTUÁLNÍ':p.t}</span><span class="chev">▾</span></summary>
+    <div class="inner">
+      <p class="muted">${p.d} <span class="mono">(${p.t})</span></p>
+      <h3>Týdenní rozvrh</h3>
+      <table>${p.week.map(r=>`<tr><td class="mono"><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join('')}</table>
+      ${p.blocks.map(b=>`<h3>${b.h}</h3><ol>${b.items.map(it=>`<li>${it}</li>`).join('')}</ol>`).join('')}
+      <h3>Kritéria pro postup dál</h3>
+      <ul>${p.crit.map(c=>`<li>${c}</li>`).join('')}</ul>
+    </div>
+  </details>`).join('');
+}
+
+/* ---------- tréninky: formulář ---------- */
+const woT=(pi,tk)=>(WORKOUTS[pi]||[]).find(w=>w.k===tk);
+const woColor=(pi,tk)=>{const w=woT(pi,tk);return w?w.c:'#A8AE8E';};
+const woName=(pi,tk)=>{const w=woT(pi,tk);return w?w.name:'Záznam';};
+
+function toggleWoForm(){
+  const f=document.getElementById('woForm');
+  const show=f.style.display==='none';
+  f.style.display=show?'block':'none';
+  if(show){document.getElementById('wfDate').value=today();renderWfEx();}
+}
+function buildWfSelect(){
+  const s=document.getElementById('wfType');
+  s.innerHTML=[0,1,2,3].map(pi=>{
+    const cur=pi===state.phase;
+    return `<optgroup label="${cur?'▶ FÁZE '+pi+' (AKTUÁLNÍ)':'Fáze '+pi}">`+
+      WORKOUTS[pi].map(w=>`<option value="${pi}:${w.k}">${w.name}</option>`).join('')+`</optgroup>`;
+  }).join('');
+  s.value=state.phase+':'+WORKOUTS[state.phase][0].k;
+  renderWfEx();
+}
+function renderWfEx(){
+  const [pi,tk]=document.getElementById('wfType').value.split(':');
+  const w=woT(+pi,tk);
+  document.getElementById('wfEx').innerHTML=
+    (w.info?`<p class="mono muted" style="font-size:12px;margin-top:12px;border-left:3px solid var(--khaki);padding-left:8px">${w.info}</p>`:'')+
+    w.ex.map((e,i)=>`
+      <label for="wfV${i}">${i+1}. ${e.n} <span style="color:var(--accent)">· cíl: ${e.t}</span></label>
+      <input type="text" id="wfV${i}" placeholder="zapiš výsledek (${e.t})" autocomplete="off">
+      ${e.r?`<div class="rest">⏱ ${e.r}</div>`:''}`).join('');
+}
+async function saveWorkout(){
+  const [pi,tk]=document.getElementById('wfType').value.split(':');
+  const w=woT(+pi,tk);
+  const vals=w.ex.map((e,i)=>({n:e.n,t:e.t,v:(document.getElementById('wfV'+i)?.value||'').trim()}));
+  if(!vals.some(v=>v.v)){toast('Vyplň aspoň jeden cvik');return;}
+  const d=document.getElementById('wfDate').value||today();
+  state.workouts.push({id:Date.now(),d,pi:+pi,tk,vals,note:document.getElementById('wfNote').value.trim()});
+  if(tk==='test'){
+    const gv=i=>vals[i]?vals[i].v:'';
+    state.tests.push({id:Date.now()+1,d,push:gv(0),squat:gv(1),plank:gv(2),run:gv(3),hr:gv(4),w:gv(5),waist:gv(6)});
+  }
+  document.getElementById('wfNote').value='';
+  document.getElementById('woForm').style.display='none';
+  save('Trénink uložen');
+  renderTests();
+  const wd=state.workouts[state.workouts.length-1].d;
+  calY=+wd.slice(0,4);calM=+wd.slice(5,7)-1;
+  renderTraining();renderDash();
+}
+async function delWorkout(id){
+  state.workouts=state.workouts.filter(w=>w.id!==id);
+  save('Záznam smazán');renderTraining();renderDash();
+}
+async function delLog(id){
+  state.logs=state.logs.filter(l=>l.id!==id);
+  save('Záznam smazán');renderTraining();renderDash();
+}
+
+/* ---------- tréninky: kalendář ---------- */
+let calY=new Date().getFullYear(),calM=new Date().getMonth();
+function calShift(n){calM+=n;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();}
+function renderCal(){
+  const off=(new Date(calY,calM,1).getDay()+6)%7;
+  const dim=new Date(calY,calM+1,0).getDate();
+  const map={};
+  state.workouts.forEach(w=>{(map[w.d]=map[w.d]||[]).push(woColor(w.pi,w.tk));});
+  state.logs.forEach(l=>{(map[l.d]=map[l.d]||[]).push('#A8AE8E');});
+  const tD=today();
+  let h=['Po','Út','St','Čt','Pá','So','Ne'].map(n=>`<div class="calDow">${n}</div>`).join('');
+  for(let i=0;i<off;i++)h+='<div class="calCell off"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const cols=map[ds]||[];
+    const dots=cols.slice(0,4).map(c=>`<span class="dot" style="background:${c}"></span>`).join('')+(cols.length>4?'<span class="dotmore">+'+(cols.length-4)+'</span>':'');
+    h+=`<div class="calCell${cols.length?' has':''}${ds===tD?' today':''}"${cols.length?` onclick="openDay('${ds}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openDay('${ds}')"`:''}><span class="dn">${d}</span><span class="dots">${dots}</span></div>`;
+  }
+  document.getElementById('calGrid').innerHTML=h;
+  const t=new Date(calY,calM,1).toLocaleDateString('cs-CZ',{month:'long',year:'numeric'});
+  document.getElementById('calTitle').textContent=t;
+  document.getElementById('calLegend').innerHTML=
+    WORKOUTS[state.phase].map(w=>`<span class="leg"><span class="dot" style="background:${w.c}"></span>${w.name}</span>`).join('')+
+    (state.logs.length?'<span class="leg"><span class="dot" style="background:#A8AE8E"></span>starší rychlý záznam</span>':'');
+}
+function openDay(ds){
+  const cards=[...document.querySelectorAll('#woList details')].filter(x=>x.dataset.d===ds);
+  if(!cards.length){toast('Na tento den je jen rychlý záznam v seznamu níže');return;}
+  cards.forEach(c=>c.open=true);
+  cards[0].scrollIntoView({behavior:'smooth',block:'center'});
+  cards.forEach(c=>{c.classList.add('hl');setTimeout(()=>c.classList.remove('hl'),1800);});
+}
+
+/* ---------- tréninky: seznam ---------- */
+function renderWoList(){
+  const el=document.getElementById('woList');
+  if(!state.workouts.length){el.innerHTML='<div class="empty">Zatím žádný zapsaný trénink. První zápis je první krok mise.</div>';return;}
+  const ws=[...state.workouts].sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id);
+  el.innerHTML=ws.map(w=>{
+    const tpl=woT(w.pi,w.tk);
+    const rows=w.vals.map((v,i)=>{
+      const rest=tpl&&tpl.ex[i]&&tpl.ex[i].r?`<div class="rest">⏱ ${tpl.ex[i].r}</div>`:'';
+      return `<tr><td style="white-space:normal">${esc(v.n)} <span class="mono muted" style="font-size:11px">(cíl ${esc(v.t||'')})</span>${rest}</td><td class="mono" style="color:var(--khaki)">${v.v?esc(v.v):'<span class="muted">—</span>'}</td></tr>`;
+    }).join('');
+    return `<details data-d="${w.d}">
+      <summary><span class="dot big" style="background:${woColor(w.pi,w.tk)}"></span>
+        <span class="mono" style="color:var(--accent)">${fmtD(w.d)}</span>
+        <span class="ph" style="font-size:18px">${esc(woName(w.pi,w.tk))}</span>
+        <span class="tag">F${w.pi}</span><span class="chev">▾</span></summary>
+      <div class="inner">
+        <table><tr><th>Cvik</th><th>Výsledek</th></tr>${rows}</table>
+        ${w.note?`<p class="muted" style="font-size:14px">Poznámka: ${esc(w.note)}</p>`:''}
+        <button class="btn ghost" onclick="delWorkout(${w.id})">Smazat záznam</button>
+      </div></details>`;
+  }).join('');
+}
+function renderOldLogs(){
+  const el=document.getElementById('oldLogs');
+  if(!state.logs.length){el.innerHTML='';return;}
+  const ls=[...state.logs].sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id);
+  el.innerHTML='<h2>Starší rychlé záznamy</h2>'+ls.map(l=>`
+    <div class="card" style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px">
+        <span class="dot" style="background:#A8AE8E;margin-right:6px"></span><span class="mono" style="color:var(--accent)">${fmtD(l.d)}</span> · <b>${esc(l.type)}</b>
+        ${l.note?`<div class="muted" style="font-size:14px;margin-top:2px">${esc(l.note)}</div>`:''}
+      </div>
+      <button class="btn ghost" onclick="delLog(${l.id})">Smazat</button>
+    </div>`).join('');
+}
+function renderTraining(){renderCal();renderWoList();renderOldLogs();}
+
+/* ---------- testy ---------- */
+async function addTest(){
+  const g=id=>document.getElementById(id).value.trim();
+  const t={id:Date.now(),d:g('tDate')||today(),push:g('tPush'),squat:g('tSquat'),plank:g('tPlank'),run:g('tRun'),hr:g('tHr'),w:g('tW'),waist:g('tWaist')};
+  if(!t.push&&!t.squat&&!t.plank&&!t.run&&!t.hr&&!t.w&&!t.waist){toast('Vyplň aspoň jednu hodnotu');return;}
+  state.tests.push(t);
+  ['tPush','tSquat','tPlank','tRun','tHr','tW','tWaist'].forEach(id=>document.getElementById(id).value='');
+  save('Test uložen');renderTests();
+}
+async function delTest(id){
+  state.tests=state.tests.filter(t=>t.id!==id);
+  save('Test smazán');renderTests();
+}
+function renderTests(){
+  const el=document.getElementById('testList');
+  if(!state.tests.length){el.innerHTML='<div class="empty">Zatím žádný test. Vstupní test = den 1 celé operace.</div>';return;}
+  const ts=[...state.tests].sort((a,b)=>a.d.localeCompare(b.d));
+  const v=x=>x?esc(x):'<span class="muted">—</span>';
+  el.innerHTML=`<table><tr><th>Datum</th><th>Kliky</th><th>Dřepy/2 min</th><th>Plank (s)</th><th>3 km / 3,2 km</th><th>Klid. TF</th><th>Váha</th><th>Pas</th><th></th></tr>
+  ${ts.map(t=>`<tr><td class="mono">${fmtD(t.d)}</td><td>${v(t.push)}</td><td>${v(t.squat)}</td><td>${v(t.plank)}</td><td>${v(t.run)}</td><td>${v(t.hr)}</td><td>${v(t.w)}</td><td>${v(t.waist)}</td><td><button class="btn ghost" onclick="delTest(${t.id})">×</button></td></tr>`).join('')}</table>`;
+}
+
+/* ---------- míry ---------- */
+const METRICS=[
+ {k:'pas',n:'Pas',f:'1× týdně',how:'Přes pupek, po klidném výdechu, uvolněné břicho (nezatahovat!). Hlavní ukazatel spalování tuku — když váha stojí a pas klesá, vyhráváš.'},
+ {k:'boky',n:'Boky',f:'1× za 2 týdny',how:'Nejširší místo přes hýždě, chodidla u sebe.'},
+ {k:'krk',n:'Krk',f:'1× za 2 týdny',how:'Těsně pod ohryzkem, kolmo na osu krku. Poměr pas/krk je hrubý ukazatel tělesného tuku — sleduj, jak se rozevírá.'},
+ {k:'hrudnik',n:'Hrudník',f:'1× za 2 týdny',how:'Přes bradavky, po normálním výdechu, paže volně podél těla.'},
+ {k:'paze',n:'Paže',f:'1× za 2 týdny',how:'Nejsilnější místo bicepsu, paže zatnutá v 90°. Vždy stejná paže. Poroste znatelně až od Fáze 1–2 — neděs se, když zprvu stagnuje.'},
+ {k:'predlokti',n:'Předloktí',f:'1× měsíčně (volitelné)',how:'Nejširší místo, zatnutá pěst, paže natažená.'},
+ {k:'stehno',n:'Stehno',f:'1× za 2 týdny',how:'Nejširší místo těsně pod hýžděmi, váha rovnoměrně na obou nohách. Vždy stejná noha.'},
+ {k:'lytko',n:'Lýtko',f:'1× měsíčně (volitelné)',how:'Nejširší místo, stoj, váha na obou nohách.'}
+];
+function buildMeasUI(){
+  document.getElementById('mInputs').innerHTML=METRICS.map(m=>
+    `<div style="min-width:110px"><label for="mV_${m.k}">${m.n} (cm)</label><input type="number" step="0.1" min="10" max="250" id="mV_${m.k}" placeholder="—"></div>`).join('');
+  document.getElementById('mSel').innerHTML=METRICS.map(m=>`<option value="${m.k}">${m.n}</option>`).join('');
+  document.getElementById('mGuide').innerHTML='<tr><th>Míra</th><th>Frekvence</th><th>Technika</th></tr>'+
+    METRICS.map(m=>`<tr><td><b>${m.n}</b></td><td class="mono" style="white-space:nowrap">${m.f}</td><td style="white-space:normal">${m.how}</td></tr>`).join('');
+}
+async function addMeasure(){
+  const vals={};let any=false;
+  METRICS.forEach(m=>{const v=parseFloat(document.getElementById('mV_'+m.k).value);if(v&&v>=10&&v<=250){vals[m.k]=v;any=true;}});
+  if(!any){toast('Vyplň aspoň jednu míru');return;}
+  state.measures.push({id:Date.now(),d:document.getElementById('mDate').value||today(),vals});
+  METRICS.forEach(m=>document.getElementById('mV_'+m.k).value='');
+  save('Míry uloženy');renderMeas();
+}
+async function delMeasure(id){
+  state.measures=state.measures.filter(m=>m.id!==id);
+  save('Měření smazáno');renderMeas();
+}
+function renderMeas(){
+  const sel=document.getElementById('mSel').value||'pas';
+  const metric=METRICS.find(m=>m.k===sel);
+  const pts=state.measures.filter(m=>m.vals[sel]!=null).map(m=>({d:m.d,v:m.vals[sel]})).sort((a,b)=>a.d.localeCompare(b.d));
+  // graf
+  const svg=document.getElementById('mChart');
+  if(pts.length<2){svg.innerHTML=`<text x="300" y="95" text-anchor="middle" fill="#A8AE8E" font-family="IBM Plex Mono" font-size="13">Zapiš aspoň dvě měření míry „${metric.n}" a graf se vykreslí</text>`;}
+  else{
+    const W=600,H=180,P=26;
+    const min=Math.min(...pts.map(p=>p.v))-1,max=Math.max(...pts.map(p=>p.v))+1;
+    const x=i=>P+i*(W-2*P)/(pts.length-1), y=v=>H-P-(v-min)*(H-2*P)/(max-min);
+    let g='';for(let i=0;i<5;i++){const yy=P+i*(H-2*P)/4;g+=`<line x1="${P}" y1="${yy}" x2="${W-P}" y2="${yy}" stroke="#3d4430" stroke-width="1"/><text x="4" y="${yy+4}" fill="#7e8468" font-size="10" font-family="IBM Plex Mono">${(max-(max-min)*i/4).toFixed(1)}</text>`;}
+    const line=pts.map((p,i)=>x(i)+','+y(p.v)).join(' ');
+    const dots=pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="3.5" fill="#EF7A17"/>`).join('');
+    svg.innerHTML=g+`<polyline points="${line}" fill="none" stroke="#EF7A17" stroke-width="2.5" stroke-linejoin="round"/>`+dots;
+  }
+  // statistiky zvolené míry
+  const st=document.getElementById('mStats');
+  if(pts.length){
+    const first=pts[0].v,last=pts[pts.length-1].v,delta=last-first;
+    st.innerHTML=`
+      <div class="card stat" style="margin:0"><div class="n">${last.toFixed(1)}</div><div class="l">poslední (cm)</div></div>
+      <div class="card stat" style="margin:0"><div class="n">${first.toFixed(1)}</div><div class="l">první (cm)</div></div>
+      <div class="card stat" style="margin:0"><div class="n" style="color:${delta<0?'var(--ok)':delta>0?'var(--khaki)':'var(--muted)'}">${delta>0?'+':''}${delta.toFixed(1)}</div><div class="l">změna celkem (cm)</div></div>`;
+  }else st.innerHTML='';
+  // historie
+  const el=document.getElementById('mList');
+  if(!state.measures.length){el.innerHTML='<div class="empty">Zatím žádné měření. První měření = výchozí bod, od kterého se počítá každý ubraný centimetr.</div>';return;}
+  const ms=[...state.measures].sort((a,b)=>a.d.localeCompare(b.d));
+  el.innerHTML=`<table><tr><th>Datum</th>${METRICS.map(m=>`<th>${m.n}</th>`).join('')}<th></th></tr>`+
+    ms.map(m=>`<tr><td class="mono">${fmtD(m.d)}</td>${METRICS.map(x=>`<td class="mono">${m.vals[x.k]!=null?m.vals[x.k].toFixed(1):'<span class="muted">—</span>'}</td>`).join('')}<td><button class="btn ghost" onclick="delMeasure(${m.id})">×</button></td></tr>`).join('')+'</table>';
+}
+
+/* ---------- init ---------- */
+function renderAll(){renderDash();renderProg();renderTraining();renderMeas();renderTests();}
+document.getElementById('wfDate').value=today();
+document.getElementById('tDate').value=today();
+document.getElementById('wfType').addEventListener('change',renderWfEx);
+buildMeasUI();
+document.getElementById('mDate').value=today();
+document.getElementById('mSel').addEventListener('change',renderMeas);
+buildWfSelect();
+load();
+buildWfSelect();
+
+/* ---------- offline režim (service worker přes Blob) ---------- */
+if('serviceWorker' in navigator){
+  const swCode=`
+    const C='prestavba-v1';
+    self.addEventListener('install',e=>{self.skipWaiting();});
+    self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});
+    self.addEventListener('fetch',e=>{
+      if(e.request.method!=='GET')return;
+      e.respondWith(
+        caches.open(C).then(cache=>
+          cache.match(e.request).then(hit=>{
+            const net=fetch(e.request).then(res=>{
+              if(res&&res.status===200&&(e.request.url.startsWith('http')))cache.put(e.request,res.clone());
+              return res;
+            }).catch(()=>hit);
+            return hit||net;
+          })
+        )
+      );
+    });`;
+  try{
+    const blob=new Blob([swCode],{type:'text/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+  }catch(e){}
+}
+</script>
