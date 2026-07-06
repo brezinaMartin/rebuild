@@ -17,9 +17,14 @@
     --mono:'IBM Plex Mono',monospace; --disp:'Staatliches',sans-serif; --body:'Barlow',sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  html,body{max-width:100%;overflow-x:hidden}
   body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
-    background-image:radial-gradient(rgba(0,0,0,.18) 1px,transparent 1px);background-size:26px 26px;}
-  .wrap{max-width:980px;margin:0 auto;padding:0 16px 90px}
+    background-image:radial-gradient(rgba(0,0,0,.18) 1px,transparent 1px);background-size:26px 26px;
+    -webkit-text-size-adjust:100%;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px 90px;
+    padding-left:calc(16px + env(safe-area-inset-left));
+    padding-right:calc(16px + env(safe-area-inset-right));}
+  @media(max-width:560px){.wrap{padding-bottom:120px}}
 
   header{padding:28px 0 10px;border-bottom:3px double var(--line);margin-bottom:14px}
   .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
@@ -28,6 +33,11 @@
   .sub{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px}
 
   nav{display:flex;gap:6px;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;border-bottom:1px solid var(--line)}
+  @media(max-width:560px){
+    nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:5px}
+    nav::-webkit-scrollbar{display:none}
+    nav button{flex:0 0 auto;font-size:15px;padding:7px 12px}
+  }
   nav button{font-family:var(--disp);letter-spacing:.08em;font-size:16px;background:transparent;color:var(--muted);
     border:1px solid var(--line);padding:7px 14px;cursor:pointer;border-radius:2px}
   nav button.on{background:var(--accent);color:#20240F;border-color:var(--accent)}
@@ -72,7 +82,9 @@
   details .inner{padding:6px 16px 16px}
 
   input,select,textarea{background:#242817;border:1px solid var(--line);color:var(--ink);font-family:var(--mono);
-    font-size:14px;padding:8px 10px;border-radius:2px;width:100%}
+    font-size:14px;padding:8px 10px;border-radius:2px;width:100%;max-width:100%}
+  /* iOS zoomuje input s font-size < 16px při fokusu — na mobilu proto 16px */
+  @media(max-width:560px){input,select,textarea{font-size:16px}}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
   label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin:8px 0 3px}
   .btn{font-family:var(--disp);letter-spacing:.1em;font-size:17px;background:var(--accent);color:#20240F;border:none;
@@ -80,8 +92,18 @@
   .btn:hover{background:var(--accent-dim)}
   .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-size:14px;padding:5px 12px;margin:0}
   .btn.ghost:hover{color:var(--danger);border-color:var(--danger)}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .row>*{flex:1;min-width:130px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+  .row>*{flex:1 1 140px;min-width:0}
+  .row input,.row select,.row textarea{width:100%}
+  /* na úzkých displejích (telefon) pole pod sebe, ať se nic netlačí ani nepřetéká */
+  @media(max-width:560px){
+    .row{gap:0}
+    .row>*{flex:1 1 100% !important;min-width:0 !important;max-width:100% !important}
+    .row>*+*{margin-top:2px}
+    .mInputsGrid>*{flex:1 1 calc(50% - 6px) !important}
+    .mInputsGrid{gap:8px}
+    [style*="max-width:260px"],[style*="max-width:240px"]{max-width:100% !important}
+  }
 
   .chart{background:#242817;border:1px solid var(--line);border-radius:3px;padding:8px;margin-top:10px}
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--khaki);color:#20240F;
@@ -330,7 +352,7 @@
     <h3 style="margin-top:0">Nové měření</h3>
     <p class="mono muted" style="font-size:12px">Vyplň jen to, co dnes měříš — zbytek nech prázdný.</p>
     <div class="row" style="max-width:260px"><div><label for="mDate">Datum</label><input type="date" id="mDate"></div></div>
-    <div class="row" id="mInputs"></div>
+    <div class="row mInputsGrid" id="mInputs"></div>
     <button class="btn" onclick="addMeasure()">Uložit měření</button>
   </div>
 
