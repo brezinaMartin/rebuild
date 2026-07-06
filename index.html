@@ -617,7 +617,7 @@ document.getElementById('nav').addEventListener('click',e=>{
 
 /* ---------- přehled ---------- */
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function today(){return new Date().toISOString().slice(0,10);}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function fmtD(d){const[y,m,dd]=d.split('-');return dd+'. '+m+'. '+y;}
 
 function renderDash(){
@@ -647,7 +647,7 @@ function renderDash(){
   // streak: po sobě jdoucí dny na plánu — zapsaný trénink NEBO plánované volno dle rozvrhu fáze
   const days=new Set([...state.logs.map(l=>l.d),...state.workouts.map(w=>w.d)]);
   const isRest=dt=>/volno/i.test(TASKS[state.phase][dt.getDay()]);
-  const key=dt=>dt.toISOString().slice(0,10);
+  const key=dt=>dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
   let streak=0,hadLog=false,cur=new Date();
   if(!days.has(today())&&!isRest(new Date())) cur.setDate(cur.getDate()-1);
   while((days.has(key(cur))||isRest(cur))&&streak<3650){
